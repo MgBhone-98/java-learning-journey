@@ -1,6 +1,7 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.InputMismatchException;
 import java.util.Scanner;
 
 interface Discountable {
@@ -43,35 +44,59 @@ class EBook extends Book {
 public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        double price = 0;
-        int qty = 0;
+        
+        // ၁။ Program စတာနဲ့ အရင်ရှိပြီးသား စာရင်းတွေကို ပြမယ်
+        displayInventory();
 
         while (true) {
+            System.out.print("\nNew Record? (y/n): ");
+            String choice = sc.next();
+            if (choice.equalsIgnoreCase("n")) break;
+
             try {
-                // ၁။ အရင်ဆုံး User ဆီက Data တောင်းမယ်
-                System.out.print("Type Price (Type '0' Exit): ");
-                price = sc.nextDouble();
-                
-                if (price == 0) break; // 0 ရိုက်ရင် program ပိတ်မယ်
-
+                System.out.print("Price: ");
+                double price = sc.nextDouble();
                 System.out.print("Quantity: ");
-                qty = sc.nextInt();
+                int qty = sc.nextInt();
 
-                // ၂။ Data ရပြီဆိုမှ File ထဲကို သိမ်းမယ်
-                try (FileWriter writer = new FileWriter("inventory.txt", true)) {
-                    writer.write("Price: " + price + ", Qty: " + qty + "\n");
-                    System.out.println("--- Finished Saving to File ---\n");
-                } catch (IOException e) {
-                    System.out.println("File Error: " + e.getMessage());
-                }
-
-            } catch (InputMismatchException e) {
-                System.out.println("Error: Type Only Number");
-                sc.nextLine(); // Buffer clear လုပ်မယ်
+                // ဖိုင်ထဲ သိမ်းမယ်
+                saveToFile(price, qty);
+                
+            } catch (Exception e) {
+                System.out.println("Error, Type Only Number");
+                sc.nextLine(); 
             }
         }
-
-        System.out.println("Program Closed။ Check inventory.txt");
         sc.close();
+    }
+
+    // ၂။ ဖိုင်ထဲ သိမ်းတဲ့ Function
+    public static void saveToFile(double price, int qty) {
+        try (FileWriter writer = new FileWriter("inventory.txt", true)) {
+            writer.write("Price: " + price + ", Qty: " + qty + "\n");
+            System.out.println("Saved successfully.");
+        } catch (IOException e) {
+            System.out.println("Save Error: " + e.getMessage());
+        }
+    }
+
+    // ၃။ ဖိုင်ထဲက Data တွေကို ပြန်ဖတ်ပြတဲ့ Function
+    public static void displayInventory() {
+        File myFile = new File("inventory.txt");
+        if (!myFile.exists()) {
+            System.out.println("No Previous Record");
+            return;
+        }
+
+        System.out.println("--- Previous Record ---");
+        try (Scanner fileReader = new Scanner(myFile)) {
+            while (fileReader.hasNextLine()) {
+                String data = fileReader.nextLine();
+                System.out.println(data);
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found.");
+        }
+        System.out.println("--------------------------------------");
     }
 }
