@@ -1,0 +1,2 @@
+Price: 15000.0, Qty: 2
+Price: 20000.0, Qty: 2

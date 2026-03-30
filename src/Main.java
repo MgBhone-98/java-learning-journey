@@ -1,6 +1,7 @@
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
-
 
 interface Discountable {
     double calculateDiscount(); // ဒီ Function ကို implementation လုပ်တဲ့သူတိုင်း မဖြစ်မနေ ရေးရမယ်
@@ -37,6 +38,8 @@ class EBook extends Book {
     }
 }
 
+// Discountable, Book, EBook class တွေက အရင်အတိုင်းပဲ ထားပါ (မပြောင်းလဲပါ)
+
 public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
@@ -45,20 +48,30 @@ public class Main {
 
         while (true) {
             try {
-                System.out.print("Please Price: ");
-                price = sc.nextDouble(); // ဒီမှာ စာသားရိုက်ရင် InputMismatchException တက်မယ်
+                // ၁။ အရင်ဆုံး User ဆီက Data တောင်းမယ်
+                System.out.print("Type Price (Type '0' Exit): ");
+                price = sc.nextDouble();
+                
+                if (price == 0) break; // 0 ရိုက်ရင် program ပိတ်မယ်
 
                 System.out.print("Quantity: ");
                 qty = sc.nextInt();
-                
-                break; // အကုန်မှန်မှ Loop ထဲက ထွက်မယ်
+
+                // ၂။ Data ရပြီဆိုမှ File ထဲကို သိမ်းမယ်
+                try (FileWriter writer = new FileWriter("inventory.txt", true)) {
+                    writer.write("Price: " + price + ", Qty: " + qty + "\n");
+                    System.out.println("--- Finished Saving to File ---\n");
+                } catch (IOException e) {
+                    System.out.println("File Error: " + e.getMessage());
+                }
+
             } catch (InputMismatchException e) {
-                System.out.println("Error: Please text number");
-                sc.nextLine(); // Buffer ရှင်းထုတ်ပစ်ရမယ် (ဒါမှ နောက်တစ်ခါ ပြန်ရိုက်လို့ရမှာ)
+                System.out.println("Error: Type Only Number");
+                sc.nextLine(); // Buffer clear လုပ်မယ်
             }
         }
 
-        System.out.println("Input Received - Price: " + price + ", Qty: " + qty);
+        System.out.println("Program Closed။ Check inventory.txt");
         sc.close();
     }
 }
