@@ -1,5 +1,6 @@
-import java.util.ArrayList;
-import java.util.List;
+import java.util.InputMismatchException;
+import java.util.Scanner;
+
 
 interface Discountable {
     double calculateDiscount(); // ဒီ Function ကို implementation လုပ်တဲ့သူတိုင်း မဖြစ်မနေ ရေးရမယ်
@@ -38,19 +39,26 @@ class EBook extends Book {
 
 public class Main {
     public static void main(String[] args) {
-        List<Book> myStore = new ArrayList<>();
-        myStore.add(new Book("Java Basics", 10000, 1));
-        myStore.add(new EBook("Advanced Java (E-Book)", 10000, 1));
+        Scanner sc = new Scanner(System.in);
+        double price = 0;
+        int qty = 0;
 
-        for (Book b : myStore) {
-            double discount = b.calculateDiscount();
-            double finalPrice = b.getPrice() - discount;
-            
-            System.out.println("Item: " + b.getTitle());
-            System.out.println("Original Price: " + b.getPrice());
-            System.out.println("Discount: " + discount);
-            System.out.println("Final Price: " + finalPrice);
-            System.out.println("-------------------------");
+        while (true) {
+            try {
+                System.out.print("Please Price: ");
+                price = sc.nextDouble(); // ဒီမှာ စာသားရိုက်ရင် InputMismatchException တက်မယ်
+
+                System.out.print("Quantity: ");
+                qty = sc.nextInt();
+                
+                break; // အကုန်မှန်မှ Loop ထဲက ထွက်မယ်
+            } catch (InputMismatchException e) {
+                System.out.println("Error: Please text number");
+                sc.nextLine(); // Buffer ရှင်းထုတ်ပစ်ရမယ် (ဒါမှ နောက်တစ်ခါ ပြန်ရိုက်လို့ရမှာ)
+            }
         }
+
+        System.out.println("Input Received - Price: " + price + ", Qty: " + qty);
+        sc.close();
     }
 }
