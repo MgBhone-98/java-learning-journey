@@ -1,8 +1,11 @@
 import java.util.ArrayList;
 import java.util.List;
 
-// Parent Class (ရိုးရိုး Book)
-class Book {
+interface Discountable {
+    double calculateDiscount(); // ဒီ Function ကို implementation လုပ်တဲ့သူတိုင်း မဖြစ်မနေ ရေးရမယ်
+}
+
+class Book implements Discountable {
     private String title;
     private double price;
     private int quantity;
@@ -13,43 +16,41 @@ class Book {
         this.quantity = quantity;
     }
 
-    public String getTitle() { return title; }
     public double getPrice() { return price; }
-    public int getQuantity() { return quantity; }
+    public String getTitle() { return title; }
+
+    @Override
+    public double calculateDiscount() {
+        return price * 0.1; // ရိုးရိုးစာအုပ်ကို 10% discount ပေးမယ်
+    }
 }
 
-// Child Class (EBook သည် Book ထံမှ အမွေဆက်ခံသည်)
 class EBook extends Book {
-    private double fileSizeMB;
-
-    public EBook(String title, double price, int quantity, double fileSizeMB) {
-        // super() သည် Parent Class ရဲ့ Constructor ကို လှမ်းခေါ်တာဖြစ်သည်
-        super(title, price, quantity); 
-        this.fileSizeMB = fileSizeMB;
+    public EBook(String title, double price, int quantity) {
+        super(title, price, quantity);
     }
 
-    public double getFileSizeMB() { return fileSizeMB; }
+    @Override
+    public double calculateDiscount() {
+        return getPrice() * 0.2; // E-Book ကို 20% discount ပေးမယ်
+    }
 }
 
 public class Main {
     public static void main(String[] args) {
         List<Book> myStore = new ArrayList<>();
+        myStore.add(new Book("Java Basics", 10000, 1));
+        myStore.add(new EBook("Advanced Java (E-Book)", 10000, 1));
 
-        // ရိုးရိုးစာအုပ် ထည့်မယ်
-        myStore.add(new Book("Java Core", 15000, 2));
-
-        // E-Book ထည့်မယ် (Book list ထဲကို EBook လည်း ထည့်လို့ရပါတယ် - ဒါကို Polymorphism လို့ခေါ်တယ်)
-        myStore.add(new EBook("Spring Boot Guide (PDF)", 8000, 1, 15.5));
-
-        System.out.println("--- Book List ---");
         for (Book b : myStore) {
-            System.out.println("Title: " + b.getTitle() + " | Price: " + b.getPrice());
+            double discount = b.calculateDiscount();
+            double finalPrice = b.getPrice() - discount;
             
-            // EBook ဟုတ်မဟုတ် စစ်ပြီး fileSize ထုတ်ပြမယ်
-            if (b instanceof EBook) {
-                EBook eb = (EBook) b; // Casting လုပ်ခြင်း
-                System.out.println(">> Download Size: " + eb.getFileSizeMB() + " MB");
-            }
+            System.out.println("Item: " + b.getTitle());
+            System.out.println("Original Price: " + b.getPrice());
+            System.out.println("Discount: " + discount);
+            System.out.println("Final Price: " + finalPrice);
+            System.out.println("-------------------------");
         }
     }
 }
