@@ -2,7 +2,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Scanner;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+
+
 
 interface Discountable {
     double calculateDiscount(); // ဒီ Function ကို implementation လုပ်တဲ့သူတိုင်း မဖြစ်မနေ ရေးရမယ်
@@ -21,6 +25,7 @@ class Book implements Discountable {
 
     public double getPrice() { return price; }
     public String getTitle() { return title; }
+    public int getQuantity() { return quantity; }
 
     @Override
     public double calculateDiscount() {
@@ -44,59 +49,71 @@ class EBook extends Book {
 public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        
-        // ၁။ Program စတာနဲ့ အရင်ရှိပြီးသား စာရင်းတွေကို ပြမယ်
-        displayInventory();
+        List<Book> myStore = new ArrayList<>();
+
+        // ၁။ ဖိုင်ထဲက data တွေကို List ထဲအရင်ပြန်ဖတ်ထည့်မယ် (ဒါမှ စီလို့ရမှာ)
+        loadFromFile(myStore);
 
         while (true) {
-            System.out.print("\nNew Record? (y/n): ");
-            String choice = sc.next();
-            if (choice.equalsIgnoreCase("n")) break;
+            System.out.println("\n1. New Entry List | 2. Sorting Check List | 3. Exit");
+            System.out.print("Choice: ");
+            int choice = sc.nextInt();
+            sc.nextLine(); 
 
-            try {
+            if (choice == 3) break;
+
+            if (choice == 1) {
+                System.out.print("Title: ");
+                String title = sc.nextLine();
                 System.out.print("Price: ");
                 double price = sc.nextDouble();
                 System.out.print("Quantity: ");
                 int qty = sc.nextInt();
 
-                // ဖိုင်ထဲ သိမ်းမယ်
-                saveToFile(price, qty);
+                Book newBook = new Book(title, price, qty);
+                myStore.add(newBook);
+                saveToFile(newBook);
+            } else if (choice == 2) {
+                // ၂။ စာရင်းကို ဈေးနှုန်းအလိုက် စီမယ် (Higher price first)
+                myStore.sort((b1, b2) -> Double.compare(b2.getPrice(), b1.getPrice()));
                 
-            } catch (Exception e) {
-                System.out.println("Error, Type Only Number");
-                sc.nextLine(); 
+                System.out.println("\n--- Total List ---");
+                for (Book b : myStore) {
+                    System.out.println(b.getTitle() + " - " + b.getPrice() + " Ks (" + b.getQuantity() + " book)");
+                }
             }
         }
         sc.close();
     }
 
-    // ၂။ ဖိုင်ထဲ သိမ်းတဲ့ Function
-    public static void saveToFile(double price, int qty) {
+    // ၃။ အချိန်နဲ့တကွ ဖိုင်ထဲသိမ်းတဲ့ Function
+    public static void saveToFile(Book b) {
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String formattedDate = now.format(formatter);
+
         try (FileWriter writer = new FileWriter("inventory.txt", true)) {
-            writer.write("Price: " + price + ", Qty: " + qty + "\n");
-            System.out.println("Saved successfully.");
+            writer.write(formattedDate + " | " + b.getTitle() + " | " + b.getPrice() + "\n");
+            System.out.println("Saved at " + formattedDate);
         } catch (IOException e) {
-            System.out.println("Save Error: " + e.getMessage());
+            System.out.println("Save Error.");
         }
     }
 
-    // ၃။ ဖိုင်ထဲက Data တွေကို ပြန်ဖတ်ပြတဲ့ Function
-    public static void displayInventory() {
-        File myFile = new File("inventory.txt");
-        if (!myFile.exists()) {
-            System.out.println("No Previous Record");
-            return;
-        }
+    // ၄။ ဖိုင်ထဲက data တွေကို Memory (List) ထဲ ပြန်တင်တဲ့ Function
+    public static void loadFromFile(List<Book> list) {
+        File f = new File("inventory.txt");
+        if (!f.exists()) return;
 
-        System.out.println("--- Previous Record ---");
-        try (Scanner fileReader = new Scanner(myFile)) {
-            while (fileReader.hasNextLine()) {
-                String data = fileReader.nextLine();
-                System.out.println(data);
+        try (Scanner reader = new Scanner(f)) {
+            while (reader.hasNextLine()) {
+                String line = reader.nextLine();
+                // ဥပမာ- 2026-03-30 | Java | 15000.0 ဆိုတဲ့ စာသားကို ခွဲထုတ်မယ်
+                String[] parts = line.split(" \\| ");
+                if (parts.length == 3) {
+                    list.add(new Book(parts[1], Double.parseDouble(parts[2]), 1));
+                }
             }
-        } catch (FileNotFoundException e) {
-            System.out.println("File not found.");
-        }
-        System.out.println("--------------------------------------");
+        } catch (FileNotFoundException e) { }
     }
 }
