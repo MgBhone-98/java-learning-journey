@@ -55,12 +55,12 @@ public class Main {
         loadFromFile(myStore);
 
         while (true) {
-            System.out.println("\n1. New Entry List | 2. Sorting Check List | 3. Exit");
+            System.out.println("\n1. New Entry List | 2. Sorting Check List | 3. Search | 4. Exit");
             System.out.print("Choice: ");
             int choice = sc.nextInt();
             sc.nextLine(); 
 
-            if (choice == 3) break;
+            if (choice == 4) break;
 
             if (choice == 1) {
                 System.out.print("Title: ");
@@ -80,6 +80,22 @@ public class Main {
                 System.out.println("\n--- Total List ---");
                 for (Book b : myStore) {
                     System.out.println(b.getTitle() + " - " + b.getPrice() + " Ks (" + b.getQuantity() + " book)");
+                }
+            } else if (choice == 3) {
+                // ၃။ ရှာဖွေခြင်း Logic
+                System.out.print("Type Searching Book Name: ");
+                String keyword = sc.nextLine().toLowerCase();
+
+                System.out.println("\n--- Search Results ---");
+                
+                // Stream API သုံးပြီး filter လုပ်ခြင်း
+                long count = myStore.stream()
+                    .filter(b -> b.getTitle().toLowerCase().contains(keyword))
+                    .peek(b -> System.out.println(b.getTitle() + " - " + b.getPrice() + " Ks"))
+                    .count();
+
+                if (count == 0) {
+                    System.out.println("No Search Results");
                 }
             }
         }
