@@ -1,6 +1,1 @@
-Price: 15000.0, Qty: 2
-Price: 20000.0, Qty: 2
-Price: 30000.0, Qty: 2
-Price: 10000.0, Qty: 2
-2026-03-31 14:15:39 | New Java Spring Book | 30000.0
-2026-03-31 14:16:33 | New Database Book | 20000.0
+2026-04-02 21:38:05 | linux administrator book | 20000.0

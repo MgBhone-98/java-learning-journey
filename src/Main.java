@@ -1,15 +1,10 @@
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-
-
 interface Discountable {
-    double calculateDiscount(); // ဒီ Function ကို implementation လုပ်တဲ့သူတိုင်း မဖြစ်မနေ ရေးရမယ်
+    double calculateDiscount();
 }
 
 class Book implements Discountable {
@@ -29,38 +24,25 @@ class Book implements Discountable {
 
     @Override
     public double calculateDiscount() {
-        return price * 0.1; // ရိုးရိုးစာအုပ်ကို 10% discount ပေးမယ်
+        return price * 0.1;
     }
 }
 
-class EBook extends Book {
-    public EBook(String title, double price, int quantity) {
-        super(title, price, quantity);
-    }
-
-    @Override
-    public double calculateDiscount() {
-        return getPrice() * 0.2; // E-Book ကို 20% discount ပေးမယ်
-    }
-}
-
-// Discountable, Book, EBook class တွေက အရင်အတိုင်းပဲ ထားပါ (မပြောင်းလဲပါ)
-
+// 1. Class နာမည်ကို 'Main' (M အကြီး) လို့ ပြင်ထားတယ်
 public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         List<Book> myStore = new ArrayList<>();
 
-        // ၁။ ဖိုင်ထဲက data တွေကို List ထဲအရင်ပြန်ဖတ်ထည့်မယ် (ဒါမှ စီလို့ရမှာ)
         loadFromFile(myStore);
 
         while (true) {
-            System.out.println("\n1. New Entry List | 2. Sorting Check List | 3. Search | 4. Exit");
+            System.out.println("\n1. Entry | 2. Sorting | 3. Search | 4. Delete | 5. Exit");
             System.out.print("Choice: ");
             int choice = sc.nextInt();
             sc.nextLine(); 
 
-            if (choice == 4) break;
+            if (choice == 5) break;
 
             if (choice == 1) {
                 System.out.print("Title: ");
@@ -74,62 +56,57 @@ public class Main {
                 myStore.add(newBook);
                 saveToFile(newBook);
             } else if (choice == 2) {
-                // ၂။ စာရင်းကို ဈေးနှုန်းအလိုက် စီမယ် (Higher price first)
                 myStore.sort((b1, b2) -> Double.compare(b2.getPrice(), b1.getPrice()));
-                
                 System.out.println("\n--- Total List ---");
                 for (Book b : myStore) {
                     System.out.println(b.getTitle() + " - " + b.getPrice() + " Ks (" + b.getQuantity() + " book)");
                 }
             } else if (choice == 3) {
-                // ၃။ ရှာဖွေခြင်း Logic
-                System.out.print("Type Searching Book Name: ");
+                System.out.print("Searching Book: ");
                 String keyword = sc.nextLine().toLowerCase();
-
-                System.out.println("\n--- Search Results ---");
-                
-                // Stream API သုံးပြီး filter လုပ်ခြင်း
-                long count = myStore.stream()
+                myStore.stream()
                     .filter(b -> b.getTitle().toLowerCase().contains(keyword))
-                    .peek(b -> System.out.println(b.getTitle() + " - " + b.getPrice() + " Ks"))
-                    .count();
-
-                if (count == 0) {
-                    System.out.println("No Search Results");
+                    .forEach(b -> System.out.println(b.getTitle() + " - " + b.getPrice() + " Ks"));
+            } else if (choice == 4) {
+                System.out.print("Delete Book Name: ");
+                String target = sc.nextLine();
+                if (myStore.removeIf(b -> b.getTitle().equalsIgnoreCase(target))) {
+                    updateFile(myStore);
+                    System.out.println("Deleted!");
                 }
             }
         }
         sc.close();
-    }
+    } // Main Method အပိတ်
 
-    // ၃။ အချိန်နဲ့တကွ ဖိုင်ထဲသိမ်းတဲ့ Function
+    // Method တိုင်းမှာ 'static' ပါရပါမယ်
     public static void saveToFile(Book b) {
-        LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String formattedDate = now.format(formatter);
-
         try (FileWriter writer = new FileWriter("inventory.txt", true)) {
-            writer.write(formattedDate + " | " + b.getTitle() + " | " + b.getPrice() + "\n");
-            System.out.println("Saved at " + formattedDate);
-        } catch (IOException e) {
-            System.out.println("Save Error.");
-        }
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            writer.write(now.format(fmt) + " | " + b.getTitle() + " | " + b.getPrice() + "\n");
+        } catch (IOException e) { System.out.println("Error saving."); }
     }
 
-    // ၄။ ဖိုင်ထဲက data တွေကို Memory (List) ထဲ ပြန်တင်တဲ့ Function
     public static void loadFromFile(List<Book> list) {
         File f = new File("inventory.txt");
         if (!f.exists()) return;
-
         try (Scanner reader = new Scanner(f)) {
             while (reader.hasNextLine()) {
-                String line = reader.nextLine();
-                // ဥပမာ- 2026-03-30 | Java | 15000.0 ဆိုတဲ့ စာသားကို ခွဲထုတ်မယ်
-                String[] parts = line.split(" \\| ");
+                String[] parts = reader.nextLine().split(" \\| ");
                 if (parts.length == 3) {
                     list.add(new Book(parts[1], Double.parseDouble(parts[2]), 1));
                 }
             }
-        } catch (FileNotFoundException e) { }
+        } catch (Exception e) { }
     }
-}
+
+    public static void updateFile(List<Book> list) {
+        try (FileWriter writer = new FileWriter("inventory.txt", false)) {
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            for (Book b : list) {
+                writer.write(LocalDateTime.now().format(fmt) + " | " + b.getTitle() + " | " + b.getPrice() + "\n");
+            }
+        } catch (IOException e) { }
+    }
+} // Class အပိတ်
